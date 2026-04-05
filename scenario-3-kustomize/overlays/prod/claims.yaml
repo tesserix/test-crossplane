@@ -7,7 +7,7 @@ spec:
   appName: frontend
   environment: prod
   cloud: aws
-  replicas: 5
+  replicas: 8
   dbEnabled: true
   storageEnabled: true
 ---

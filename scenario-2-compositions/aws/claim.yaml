@@ -7,8 +7,8 @@ spec:
   appName: payments
   environment: prod
   region: ap-southeast-2
-  dbInstanceClass: db.r6g.large
-  dbStorage: 100
+  dbInstanceClass: db.r6g.xlarge
+  dbStorage: 200
   enableMultiAz: true
 ---
 apiVersion: platform.example.com/v1alpha1
