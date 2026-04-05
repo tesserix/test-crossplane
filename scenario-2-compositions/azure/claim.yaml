@@ -1,0 +1,27 @@
+apiVersion: platform.example.com/v1alpha1
+kind: AzureApp
+metadata:
+  name: ordering-platform
+  namespace: apps
+spec:
+  appName: ordering
+  environment: prod
+  location: australiaeast
+  storageReplication: GRS
+  aksVmSize: Standard_D8ds_v5
+  aksNodeCount: 5
+  aksMaxNodes: 20
+---
+apiVersion: platform.example.com/v1alpha1
+kind: AzureApp
+metadata:
+  name: analytics-service
+  namespace: apps
+spec:
+  appName: analytics
+  environment: dev
+  location: australiaeast
+  storageReplication: LRS
+  aksVmSize: Standard_D4ds_v5
+  aksNodeCount: 2
+  aksMaxNodes: 5

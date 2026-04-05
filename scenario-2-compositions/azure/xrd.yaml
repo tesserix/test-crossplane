@@ -1,0 +1,45 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xazureapps.platform.example.com
+spec:
+  group: platform.example.com
+  names:
+    kind: XAzureApp
+    plural: xazureapps
+  claimNames:
+    kind: AzureApp
+    plural: azureapps
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required: [appName, environment]
+              properties:
+                appName:
+                  type: string
+                environment:
+                  type: string
+                  enum: [dev, staging, prod]
+                location:
+                  type: string
+                  default: australiaeast
+                storageReplication:
+                  type: string
+                  default: LRS
+                  enum: [LRS, GRS, ZRS, GZRS]
+                aksVmSize:
+                  type: string
+                  default: Standard_D4ds_v5
+                aksNodeCount:
+                  type: integer
+                  default: 3
+                aksMaxNodes:
+                  type: integer
+                  default: 10

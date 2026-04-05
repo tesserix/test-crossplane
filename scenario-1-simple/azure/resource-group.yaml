@@ -1,0 +1,13 @@
+apiVersion: azure.upbound.io/v1beta1
+kind: ResourceGroup
+metadata:
+  name: rg-app-prod-aue
+spec:
+  forProvider:
+    location: australiaeast
+    tags:
+      Environment: production
+      CostCenter: platform-engineering
+      ManagedBy: crossplane
+  providerConfigRef:
+    name: azure-prod

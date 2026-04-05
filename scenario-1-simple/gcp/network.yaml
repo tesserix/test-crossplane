@@ -1,0 +1,50 @@
+apiVersion: compute.gcp.upbound.io/v1beta1
+kind: Network
+metadata:
+  name: prod-network
+spec:
+  forProvider:
+    autoCreateSubnetworks: false
+    project: my-gcp-project
+  providerConfigRef:
+    name: gcp-prod
+---
+apiVersion: compute.gcp.upbound.io/v1beta1
+kind: Subnetwork
+metadata:
+  name: app-subnet
+spec:
+  forProvider:
+    ipCidrRange: 10.0.0.0/20
+    region: australia-southeast1
+    networkRef:
+      name: prod-network
+    project: my-gcp-project
+    secondaryIpRange:
+      - rangeName: pods
+        ipCidrRange: 10.4.0.0/14
+      - rangeName: services
+        ipCidrRange: 10.8.0.0/20
+    privateIpGoogleAccess: true
+  providerConfigRef:
+    name: gcp-prod
+---
+apiVersion: compute.gcp.upbound.io/v1beta1
+kind: Firewall
+metadata:
+  name: allow-internal
+spec:
+  forProvider:
+    networkRef:
+      name: prod-network
+    project: my-gcp-project
+    allow:
+      - protocol: tcp
+        ports: ["0-65535"]
+      - protocol: udp
+        ports: ["0-65535"]
+      - protocol: icmp
+    sourceRanges:
+      - 10.0.0.0/8
+  providerConfigRef:
+    name: gcp-prod

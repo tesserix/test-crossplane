@@ -1,0 +1,25 @@
+apiVersion: platform.example.com/v1alpha1
+kind: AWSApp
+metadata:
+  name: payments-service
+  namespace: apps
+spec:
+  appName: payments
+  environment: prod
+  region: ap-southeast-2
+  dbInstanceClass: db.r6g.large
+  dbStorage: 100
+  enableMultiAz: true
+---
+apiVersion: platform.example.com/v1alpha1
+kind: AWSApp
+metadata:
+  name: notifications-service
+  namespace: apps
+spec:
+  appName: notifications
+  environment: staging
+  region: ap-southeast-2
+  dbInstanceClass: db.t3.medium
+  dbStorage: 20
+  enableMultiAz: false

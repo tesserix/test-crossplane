@@ -1,0 +1,41 @@
+apiVersion: rds.aws.upbound.io/v1beta1
+kind: Instance
+metadata:
+  name: app-postgres
+spec:
+  forProvider:
+    region: ap-southeast-2
+    engine: postgres
+    engineVersion: "16.4"
+    instanceClass: db.r6g.large
+    allocatedStorage: 100
+    maxAllocatedStorage: 500
+    dbName: appdb
+    masterUsername: appadmin
+    storageEncrypted: true
+    multiAz: true
+    publiclyAccessible: false
+    skipFinalSnapshot: false
+    dbSubnetGroupNameRef:
+      name: app-db-subnets
+    tags:
+      Environment: production
+      BackupPolicy: daily
+  providerConfigRef:
+    name: aws-prod
+---
+apiVersion: rds.aws.upbound.io/v1beta1
+kind: SubnetGroup
+metadata:
+  name: app-db-subnets
+spec:
+  forProvider:
+    region: ap-southeast-2
+    description: Database subnet group for app
+    subnetIdRefs:
+      - name: private-subnet-1
+      - name: private-subnet-2
+    tags:
+      Environment: production
+  providerConfigRef:
+    name: aws-prod

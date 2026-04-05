@@ -1,0 +1,104 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: xawsapp.composition.v1
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.com/v1alpha1
+    kind: XAWSApp
+  resources:
+    - name: s3-bucket
+      base:
+        apiVersion: s3.aws.upbound.io/v1beta1
+        kind: Bucket
+        spec:
+          forProvider:
+            region: ap-southeast-2
+            tags:
+              ManagedBy: crossplane
+          providerConfigRef:
+            name: aws-prod
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.region
+          toFieldPath: spec.forProvider.region
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.appName
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-data"
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.environment
+          toFieldPath: spec.forProvider.tags.Environment
+
+    - name: database
+      base:
+        apiVersion: rds.aws.upbound.io/v1beta1
+        kind: Instance
+        spec:
+          forProvider:
+            region: ap-southeast-2
+            engine: postgres
+            engineVersion: "16.4"
+            instanceClass: db.t3.medium
+            allocatedStorage: 20
+            storageEncrypted: true
+            publiclyAccessible: false
+            skipFinalSnapshot: true
+            tags:
+              ManagedBy: crossplane
+          providerConfigRef:
+            name: aws-prod
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.region
+          toFieldPath: spec.forProvider.region
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.dbInstanceClass
+          toFieldPath: spec.forProvider.instanceClass
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.dbStorage
+          toFieldPath: spec.forProvider.allocatedStorage
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.enableMultiAz
+          toFieldPath: spec.forProvider.multiAz
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.appName
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-db"
+
+    - name: iam-role
+      base:
+        apiVersion: iam.aws.upbound.io/v1beta1
+        kind: Role
+        spec:
+          forProvider:
+            assumeRolePolicy: |
+              {
+                "Version": "2012-10-17",
+                "Statement": [{
+                  "Effect": "Allow",
+                  "Principal": {"Service": "ecs-tasks.amazonaws.com"},
+                  "Action": "sts:AssumeRole"
+                }]
+              }
+            tags:
+              ManagedBy: crossplane
+          providerConfigRef:
+            name: aws-prod
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.appName
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-role"
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.environment
+          toFieldPath: spec.forProvider.tags.Environment

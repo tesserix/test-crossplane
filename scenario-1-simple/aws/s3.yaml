@@ -1,0 +1,39 @@
+apiVersion: s3.aws.upbound.io/v1beta1
+kind: Bucket
+metadata:
+  name: app-logs-bucket
+spec:
+  forProvider:
+    region: ap-southeast-2
+    tags:
+      Environment: production
+      Team: platform
+  providerConfigRef:
+    name: aws-prod
+---
+apiVersion: s3.aws.upbound.io/v1beta1
+kind: BucketVersioning
+metadata:
+  name: app-logs-versioning
+spec:
+  forProvider:
+    bucketRef:
+      name: app-logs-bucket
+    versioningConfiguration:
+      - status: Enabled
+  providerConfigRef:
+    name: aws-prod
+---
+apiVersion: s3.aws.upbound.io/v1beta1
+kind: BucketServerSideEncryptionConfiguration
+metadata:
+  name: app-logs-encryption
+spec:
+  forProvider:
+    bucketRef:
+      name: app-logs-bucket
+    rule:
+      - applyServerSideEncryptionByDefault:
+          - sseAlgorithm: aws:kms
+  providerConfigRef:
+    name: aws-prod

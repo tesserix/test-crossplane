@@ -1,0 +1,43 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xawsapps.platform.example.com
+spec:
+  group: platform.example.com
+  names:
+    kind: XAWSApp
+    plural: xawsapps
+  claimNames:
+    kind: AWSApp
+    plural: awsapps
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required: [appName, environment, region]
+              properties:
+                appName:
+                  type: string
+                  description: Application name used for resource naming
+                environment:
+                  type: string
+                  enum: [dev, staging, prod]
+                region:
+                  type: string
+                  default: ap-southeast-2
+                dbInstanceClass:
+                  type: string
+                  default: db.t3.medium
+                  enum: [db.t3.micro, db.t3.medium, db.r6g.large, db.r6g.xlarge]
+                dbStorage:
+                  type: integer
+                  default: 20
+                enableMultiAz:
+                  type: boolean
+                  default: false

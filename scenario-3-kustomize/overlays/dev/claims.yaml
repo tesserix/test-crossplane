@@ -1,0 +1,25 @@
+apiVersion: platform.example.com/v1alpha1
+kind: WebApp
+metadata:
+  name: frontend-dev
+  namespace: dev
+spec:
+  appName: frontend
+  environment: dev
+  cloud: aws
+  replicas: 1
+  dbEnabled: true
+  storageEnabled: true
+---
+apiVersion: platform.example.com/v1alpha1
+kind: WebApp
+metadata:
+  name: api-dev
+  namespace: dev
+spec:
+  appName: api
+  environment: dev
+  cloud: azure
+  replicas: 1
+  dbEnabled: true
+  storageEnabled: false

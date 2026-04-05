@@ -1,0 +1,65 @@
+apiVersion: ec2.aws.upbound.io/v1beta1
+kind: VPC
+metadata:
+  name: prod-vpc
+spec:
+  forProvider:
+    region: ap-southeast-2
+    cidrBlock: 10.0.0.0/16
+    enableDnsHostnames: true
+    enableDnsSupport: true
+    tags:
+      Name: prod-vpc
+      Environment: production
+  providerConfigRef:
+    name: aws-prod
+---
+apiVersion: ec2.aws.upbound.io/v1beta1
+kind: Subnet
+metadata:
+  name: private-subnet-1
+spec:
+  forProvider:
+    region: ap-southeast-2
+    vpcIdRef:
+      name: prod-vpc
+    cidrBlock: 10.0.1.0/24
+    availabilityZone: ap-southeast-2a
+    mapPublicIpOnLaunch: false
+    tags:
+      Name: private-1
+      Tier: private
+  providerConfigRef:
+    name: aws-prod
+---
+apiVersion: ec2.aws.upbound.io/v1beta1
+kind: Subnet
+metadata:
+  name: private-subnet-2
+spec:
+  forProvider:
+    region: ap-southeast-2
+    vpcIdRef:
+      name: prod-vpc
+    cidrBlock: 10.0.2.0/24
+    availabilityZone: ap-southeast-2b
+    mapPublicIpOnLaunch: false
+    tags:
+      Name: private-2
+      Tier: private
+  providerConfigRef:
+    name: aws-prod
+---
+apiVersion: ec2.aws.upbound.io/v1beta1
+kind: SecurityGroup
+metadata:
+  name: app-sg
+spec:
+  forProvider:
+    region: ap-southeast-2
+    vpcIdRef:
+      name: prod-vpc
+    description: Application tier security group
+    name: app-sg
+  providerConfigRef:
+    name: aws-prod

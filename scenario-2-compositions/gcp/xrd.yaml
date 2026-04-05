@@ -1,0 +1,47 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xgcpapps.platform.example.com
+spec:
+  group: platform.example.com
+  names:
+    kind: XGCPApp
+    plural: xgcpapps
+  claimNames:
+    kind: GCPApp
+    plural: gcpapps
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required: [appName, environment, project]
+              properties:
+                appName:
+                  type: string
+                environment:
+                  type: string
+                  enum: [dev, staging, prod]
+                project:
+                  type: string
+                region:
+                  type: string
+                  default: australia-southeast1
+                dbTier:
+                  type: string
+                  default: db-f1-micro
+                  enum: [db-f1-micro, db-custom-2-8192, db-custom-4-16384, db-custom-8-32768]
+                dbDiskSize:
+                  type: integer
+                  default: 10
+                gkeNodeCount:
+                  type: integer
+                  default: 3
+                gkeMachineType:
+                  type: string
+                  default: e2-standard-4

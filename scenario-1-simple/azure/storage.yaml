@@ -1,0 +1,42 @@
+apiVersion: storage.azure.upbound.io/v1beta2
+kind: Account
+metadata:
+  name: stappdata01
+spec:
+  forProvider:
+    resourceGroupNameRef:
+      name: rg-app-prod-aue
+    location: australiaeast
+    accountTier: Standard
+    accountReplicationType: GRS
+    minTlsVersion: TLS1_2
+    allowNestedItemsToBePublic: false
+    tags:
+      Environment: production
+      DataClassification: internal
+  providerConfigRef:
+    name: azure-prod
+---
+apiVersion: storage.azure.upbound.io/v1beta1
+kind: Container
+metadata:
+  name: uploads
+spec:
+  forProvider:
+    storageAccountNameRef:
+      name: stappdata01
+    containerAccessType: private
+  providerConfigRef:
+    name: azure-prod
+---
+apiVersion: storage.azure.upbound.io/v1beta1
+kind: Container
+metadata:
+  name: backups
+spec:
+  forProvider:
+    storageAccountNameRef:
+      name: stappdata01
+    containerAccessType: private
+  providerConfigRef:
+    name: azure-prod

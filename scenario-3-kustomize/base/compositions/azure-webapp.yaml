@@ -1,0 +1,53 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: xwebapp-azure
+  labels:
+    cloud: azure
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.com/v1alpha1
+    kind: XWebApp
+  resources:
+    - name: resource-group
+      base:
+        apiVersion: azure.upbound.io/v1beta1
+        kind: ResourceGroup
+        spec:
+          forProvider:
+            location: australiaeast
+            tags:
+              ManagedBy: crossplane
+          providerConfigRef:
+            name: azure-prod
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.appName
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                fmt: "rg-%s"
+
+    - name: storage
+      base:
+        apiVersion: storage.azure.upbound.io/v1beta2
+        kind: Account
+        spec:
+          forProvider:
+            location: australiaeast
+            accountTier: Standard
+            accountReplicationType: LRS
+            minTlsVersion: TLS1_2
+            tags:
+              ManagedBy: crossplane
+          providerConfigRef:
+            name: azure-prod
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.appName
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                fmt: "st%s"

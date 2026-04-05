@@ -1,0 +1,11 @@
+apiVersion: iam.gcp.upbound.io/v1beta1
+kind: ServiceAccount
+metadata:
+  name: app-workload-sa
+spec:
+  forProvider:
+    project: my-gcp-project
+    displayName: App Workload Service Account
+    description: Used by application pods via workload identity
+  providerConfigRef:
+    name: gcp-prod

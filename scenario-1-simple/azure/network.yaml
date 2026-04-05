@@ -1,0 +1,48 @@
+apiVersion: network.azure.upbound.io/v1beta2
+kind: VirtualNetwork
+metadata:
+  name: vnet-app-prod
+spec:
+  forProvider:
+    resourceGroupNameRef:
+      name: rg-app-prod-aue
+    location: australiaeast
+    addressSpace:
+      - 10.0.0.0/16
+    tags:
+      Environment: production
+  providerConfigRef:
+    name: azure-prod
+---
+apiVersion: network.azure.upbound.io/v1beta2
+kind: Subnet
+metadata:
+  name: snet-app
+spec:
+  forProvider:
+    resourceGroupNameRef:
+      name: rg-app-prod-aue
+    virtualNetworkNameRef:
+      name: vnet-app-prod
+    addressPrefixes:
+      - 10.0.1.0/24
+    serviceEndpoints:
+      - Microsoft.Storage
+      - Microsoft.Sql
+  providerConfigRef:
+    name: azure-prod
+---
+apiVersion: network.azure.upbound.io/v1beta2
+kind: Subnet
+metadata:
+  name: snet-aks
+spec:
+  forProvider:
+    resourceGroupNameRef:
+      name: rg-app-prod-aue
+    virtualNetworkNameRef:
+      name: vnet-app-prod
+    addressPrefixes:
+      - 10.0.2.0/22
+  providerConfigRef:
+    name: azure-prod

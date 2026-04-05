@@ -1,0 +1,51 @@
+apiVersion: iam.aws.upbound.io/v1beta1
+kind: Role
+metadata:
+  name: app-service-role
+spec:
+  forProvider:
+    assumeRolePolicy: |
+      {
+        "Version": "2012-10-17",
+        "Statement": [{
+          "Effect": "Allow",
+          "Principal": {"Service": "ecs-tasks.amazonaws.com"},
+          "Action": "sts:AssumeRole"
+        }]
+      }
+    tags:
+      Environment: production
+  providerConfigRef:
+    name: aws-prod
+---
+apiVersion: iam.aws.upbound.io/v1beta1
+kind: Policy
+metadata:
+  name: app-s3-read-policy
+spec:
+  forProvider:
+    name: app-s3-read
+    policy: |
+      {
+        "Version": "2012-10-17",
+        "Statement": [{
+          "Effect": "Allow",
+          "Action": ["s3:GetObject", "s3:ListBucket"],
+          "Resource": ["arn:aws:s3:::app-logs-bucket", "arn:aws:s3:::app-logs-bucket/*"]
+        }]
+      }
+  providerConfigRef:
+    name: aws-prod
+---
+apiVersion: iam.aws.upbound.io/v1beta1
+kind: RolePolicyAttachment
+metadata:
+  name: app-s3-read-attachment
+spec:
+  forProvider:
+    roleRef:
+      name: app-service-role
+    policyArnRef:
+      name: app-s3-read-policy
+  providerConfigRef:
+    name: aws-prod

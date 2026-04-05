@@ -1,0 +1,38 @@
+apiVersion: platform.example.com/v1alpha1
+kind: WebApp
+metadata:
+  name: frontend-prod
+  namespace: production
+spec:
+  appName: frontend
+  environment: prod
+  cloud: aws
+  replicas: 5
+  dbEnabled: true
+  storageEnabled: true
+---
+apiVersion: platform.example.com/v1alpha1
+kind: WebApp
+metadata:
+  name: api-prod
+  namespace: production
+spec:
+  appName: api
+  environment: prod
+  cloud: azure
+  replicas: 3
+  dbEnabled: true
+  storageEnabled: true
+---
+apiVersion: platform.example.com/v1alpha1
+kind: WebApp
+metadata:
+  name: analytics-prod
+  namespace: production
+spec:
+  appName: analytics
+  environment: prod
+  cloud: gcp
+  replicas: 4
+  dbEnabled: true
+  storageEnabled: true

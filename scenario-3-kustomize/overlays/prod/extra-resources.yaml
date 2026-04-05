@@ -1,0 +1,27 @@
+apiVersion: ec2.aws.upbound.io/v1beta1
+kind: VPC
+metadata:
+  name: prod-vpc
+spec:
+  forProvider:
+    region: ap-southeast-2
+    cidrBlock: 10.0.0.0/16
+    enableDnsHostnames: true
+    enableDnsSupport: true
+    tags:
+      Name: prod-vpc
+      Environment: production
+  providerConfigRef:
+    name: aws-prod
+---
+apiVersion: compute.gcp.upbound.io/v1beta1
+kind: GlobalAddress
+metadata:
+  name: prod-lb-ip
+spec:
+  forProvider:
+    project: my-gcp-project
+    addressType: EXTERNAL
+    ipVersion: IPV4
+  providerConfigRef:
+    name: gcp-prod

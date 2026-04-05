@@ -1,0 +1,29 @@
+apiVersion: platform.example.com/v1alpha1
+kind: GCPApp
+metadata:
+  name: search-engine
+  namespace: apps
+spec:
+  appName: search
+  environment: prod
+  project: my-gcp-project
+  region: australia-southeast1
+  dbTier: db-custom-4-16384
+  dbDiskSize: 50
+  gkeNodeCount: 5
+  gkeMachineType: e2-standard-8
+---
+apiVersion: platform.example.com/v1alpha1
+kind: GCPApp
+metadata:
+  name: ml-pipeline
+  namespace: data
+spec:
+  appName: mlpipe
+  environment: dev
+  project: my-gcp-project
+  region: australia-southeast1
+  dbTier: db-f1-micro
+  dbDiskSize: 10
+  gkeNodeCount: 2
+  gkeMachineType: e2-standard-4

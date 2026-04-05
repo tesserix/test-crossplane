@@ -1,0 +1,58 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: xwebapp-aws
+  labels:
+    cloud: aws
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.com/v1alpha1
+    kind: XWebApp
+  resources:
+    - name: s3-bucket
+      base:
+        apiVersion: s3.aws.upbound.io/v1beta1
+        kind: Bucket
+        spec:
+          forProvider:
+            region: ap-southeast-2
+            tags:
+              ManagedBy: crossplane
+          providerConfigRef:
+            name: aws-prod
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.appName
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-assets"
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.environment
+          toFieldPath: spec.forProvider.tags.Environment
+
+    - name: rds
+      base:
+        apiVersion: rds.aws.upbound.io/v1beta1
+        kind: Instance
+        spec:
+          forProvider:
+            region: ap-southeast-2
+            engine: postgres
+            engineVersion: "16.4"
+            instanceClass: db.t3.medium
+            allocatedStorage: 20
+            storageEncrypted: true
+            publiclyAccessible: false
+            skipFinalSnapshot: true
+          providerConfigRef:
+            name: aws-prod
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.appName
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-db"

@@ -1,0 +1,42 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xwebapps.platform.example.com
+spec:
+  group: platform.example.com
+  names:
+    kind: XWebApp
+    plural: xwebapps
+  claimNames:
+    kind: WebApp
+    plural: webapps
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required: [appName, environment, cloud]
+              properties:
+                appName:
+                  type: string
+                environment:
+                  type: string
+                  enum: [dev, staging, prod]
+                cloud:
+                  type: string
+                  enum: [aws, azure, gcp]
+                  description: Target cloud provider
+                replicas:
+                  type: integer
+                  default: 2
+                dbEnabled:
+                  type: boolean
+                  default: true
+                storageEnabled:
+                  type: boolean
+                  default: true

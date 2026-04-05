@@ -1,0 +1,152 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: xgcpapp.composition.v1
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.com/v1alpha1
+    kind: XGCPApp
+  resources:
+    - name: network
+      base:
+        apiVersion: compute.gcp.upbound.io/v1beta1
+        kind: Network
+        spec:
+          forProvider:
+            autoCreateSubnetworks: false
+          providerConfigRef:
+            name: gcp-prod
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.project
+          toFieldPath: spec.forProvider.project
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.appName
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-network"
+
+    - name: subnet
+      base:
+        apiVersion: compute.gcp.upbound.io/v1beta1
+        kind: Subnetwork
+        spec:
+          forProvider:
+            ipCidrRange: 10.0.0.0/20
+            privateIpGoogleAccess: true
+          providerConfigRef:
+            name: gcp-prod
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.project
+          toFieldPath: spec.forProvider.project
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.region
+          toFieldPath: spec.forProvider.region
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.appName
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-subnet"
+
+    - name: database
+      base:
+        apiVersion: sql.gcp.upbound.io/v1beta2
+        kind: DatabaseInstance
+        spec:
+          forProvider:
+            databaseVersion: POSTGRES_16
+            deletionProtection: false
+            settings:
+              - availabilityType: ZONAL
+                diskType: PD_SSD
+                backupConfiguration:
+                  - enabled: true
+          providerConfigRef:
+            name: gcp-prod
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.project
+          toFieldPath: spec.forProvider.project
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.region
+          toFieldPath: spec.forProvider.region
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.dbTier
+          toFieldPath: spec.forProvider.settings[0].tier
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.dbDiskSize
+          toFieldPath: spec.forProvider.settings[0].diskSize
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.appName
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-db"
+
+    - name: gke-cluster
+      base:
+        apiVersion: container.gcp.upbound.io/v1beta2
+        kind: Cluster
+        spec:
+          forProvider:
+            initialNodeCount: 1
+            removeDefaultNodePool: true
+          providerConfigRef:
+            name: gcp-prod
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.project
+          toFieldPath: spec.forProvider.project
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.region
+          toFieldPath: spec.forProvider.location
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.appName
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-gke"
+
+    - name: gke-nodepool
+      base:
+        apiVersion: container.gcp.upbound.io/v1beta2
+        kind: NodePool
+        spec:
+          forProvider:
+            autoscaling:
+              - minNodeCount: 1
+                maxNodeCount: 10
+            nodeConfig:
+              - diskSizeGb: 100
+                diskType: pd-ssd
+                oauthScopes:
+                  - https://www.googleapis.com/auth/cloud-platform
+          providerConfigRef:
+            name: gcp-prod
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.project
+          toFieldPath: spec.forProvider.project
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.region
+          toFieldPath: spec.forProvider.location
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.gkeNodeCount
+          toFieldPath: spec.forProvider.nodeCount
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.gkeMachineType
+          toFieldPath: spec.forProvider.nodeConfig[0].machineType
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.appName
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-pool"

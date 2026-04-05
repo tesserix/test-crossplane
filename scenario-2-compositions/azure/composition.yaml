@@ -1,0 +1,134 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: xazureapp.composition.v1
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.com/v1alpha1
+    kind: XAzureApp
+  resources:
+    - name: resource-group
+      base:
+        apiVersion: azure.upbound.io/v1beta1
+        kind: ResourceGroup
+        spec:
+          forProvider:
+            location: australiaeast
+            tags:
+              ManagedBy: crossplane
+          providerConfigRef:
+            name: azure-prod
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.location
+          toFieldPath: spec.forProvider.location
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.appName
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                fmt: "rg-%s"
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.environment
+          toFieldPath: spec.forProvider.tags.Environment
+
+    - name: storage-account
+      base:
+        apiVersion: storage.azure.upbound.io/v1beta2
+        kind: Account
+        spec:
+          forProvider:
+            location: australiaeast
+            accountTier: Standard
+            accountReplicationType: LRS
+            minTlsVersion: TLS1_2
+            allowNestedItemsToBePublic: false
+            tags:
+              ManagedBy: crossplane
+          providerConfigRef:
+            name: azure-prod
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.location
+          toFieldPath: spec.forProvider.location
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.storageReplication
+          toFieldPath: spec.forProvider.accountReplicationType
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.appName
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                fmt: "st%s"
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.environment
+          toFieldPath: spec.forProvider.tags.Environment
+
+    - name: vnet
+      base:
+        apiVersion: network.azure.upbound.io/v1beta2
+        kind: VirtualNetwork
+        spec:
+          forProvider:
+            location: australiaeast
+            addressSpace:
+              - 10.0.0.0/16
+            tags:
+              ManagedBy: crossplane
+          providerConfigRef:
+            name: azure-prod
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.location
+          toFieldPath: spec.forProvider.location
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.appName
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                fmt: "vnet-%s"
+
+    - name: aks-cluster
+      base:
+        apiVersion: containerservice.azure.upbound.io/v1beta2
+        kind: KubernetesCluster
+        spec:
+          forProvider:
+            location: australiaeast
+            kubernetesVersion: "1.30"
+            defaultNodePool:
+              - name: system
+                vmSize: Standard_D4ds_v5
+                nodeCount: 3
+                enableAutoScaling: true
+                minCount: 2
+                maxCount: 10
+            identity:
+              - type: SystemAssigned
+            tags:
+              ManagedBy: crossplane
+          providerConfigRef:
+            name: azure-prod
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.location
+          toFieldPath: spec.forProvider.location
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.aksVmSize
+          toFieldPath: spec.forProvider.defaultNodePool[0].vmSize
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.aksNodeCount
+          toFieldPath: spec.forProvider.defaultNodePool[0].nodeCount
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.aksMaxNodes
+          toFieldPath: spec.forProvider.defaultNodePool[0].maxCount
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.appName
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                fmt: "aks-%s"
