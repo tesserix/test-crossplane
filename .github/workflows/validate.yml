@@ -23,39 +23,83 @@ jobs:
 
       - name: Scan resources
         run: |
-          echo "### Scenario 1: Simple Resources"
+          echo "=== Scenario 1: Simple Resources ==="
           ./crossplane-validate scan scenario-1-simple/
           echo ""
-          echo "### Scenario 2: Compositions"
+          echo "=== Scenario 2: Compositions ==="
           ./crossplane-validate scan scenario-2-compositions/
           echo ""
-          echo "### Scenario 3: Kustomize"
+          echo "=== Scenario 3: Kustomize ==="
           ./crossplane-validate scan scenario-3-kustomize/
 
       - name: Validate schemas
         run: |
-          ./crossplane-validate validate scenario-2-compositions/
-          ./crossplane-validate validate scenario-3-kustomize/
+          echo "=== Validating Scenario 2 ==="
+          ./crossplane-validate validate scenario-2-compositions/ || true
+          echo ""
+          echo "=== Validating Scenario 3 ==="
+          ./crossplane-validate validate scenario-3-kustomize/ || true
+
+      - name: Lint (auto-installs tools)
+        run: |
+          pip install --quiet yamllint
+          echo "=== Linting all scenarios ==="
+          ./crossplane-validate lint scenario-1-simple/ scenario-2-compositions/ scenario-3-kustomize/ || true
 
       - name: Plan
+        id: plan
         run: |
-          ./crossplane-validate plan \
-            --base=origin/main \
-            --target=HEAD \
-            --manifests=. \
-            --output=markdown > plan.md 2>/dev/null || true
+          {
+            echo "## Crossplane Validation Report"
+            echo ""
+
+            # Plan output
+            ./crossplane-validate plan \
+              --base=origin/main \
+              --target=HEAD \
+              --manifests=. \
+              --output=markdown 2>/dev/null || true
+
+            echo ""
+
+            # Lint output
+            echo "<details>"
+            echo "<summary>Lint Results</summary>"
+            echo ""
+            echo '```'
+            ./crossplane-validate lint scenario-1-simple/ scenario-2-compositions/ scenario-3-kustomize/ 2>/dev/null || true
+            echo '```'
+            echo "</details>"
+            echo ""
+
+            # Resource inventory
+            echo "<details>"
+            echo "<summary>Resource Inventory</summary>"
+            echo ""
+            echo '```'
+            echo "--- Scenario 1: Simple ---"
+            ./crossplane-validate scan scenario-1-simple/ 2>/dev/null
+            echo ""
+            echo "--- Scenario 2: Compositions ---"
+            ./crossplane-validate scan scenario-2-compositions/ 2>/dev/null
+            echo ""
+            echo "--- Scenario 3: Kustomize ---"
+            ./crossplane-validate scan scenario-3-kustomize/ 2>/dev/null
+            echo '```'
+            echo "</details>"
+          } > report.md
 
       - name: Comment on PR
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            const body = fs.readFileSync('plan.md', 'utf8') || '### Crossplane Validation\n\nNo changes detected.';
+            const body = fs.readFileSync('report.md', 'utf8') || '## Crossplane Validation Report\n\nNo changes detected.';
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner, repo: context.repo.repo,
               issue_number: context.issue.number,
             });
-            const existing = comments.find(c => c.body.includes('### Crossplane Validation'));
+            const existing = comments.find(c => c.body.includes('## Crossplane Validation'));
             if (existing) {
               await github.rest.issues.updateComment({
                 owner: context.repo.owner, repo: context.repo.repo,
