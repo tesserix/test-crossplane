@@ -1,0 +1,69 @@
+name: Crossplane Validate
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install crossplane-validate
+        run: |
+          curl -sL https://github.com/tesserix/crossplane-validation/releases/latest/download/crossplane-validate-linux-amd64 -o crossplane-validate
+          chmod +x crossplane-validate
+
+      - name: Scan resources
+        run: |
+          echo "### Scenario 1: Simple Resources"
+          ./crossplane-validate scan scenario-1-simple/
+          echo ""
+          echo "### Scenario 2: Compositions"
+          ./crossplane-validate scan scenario-2-compositions/
+          echo ""
+          echo "### Scenario 3: Kustomize"
+          ./crossplane-validate scan scenario-3-kustomize/
+
+      - name: Validate schemas
+        run: |
+          ./crossplane-validate validate scenario-2-compositions/
+          ./crossplane-validate validate scenario-3-kustomize/
+
+      - name: Plan
+        run: |
+          ./crossplane-validate plan \
+            --base=origin/main \
+            --target=HEAD \
+            --manifests=. \
+            --output=markdown > plan.md 2>/dev/null || true
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('plan.md', 'utf8') || '### Crossplane Validation\n\nNo changes detected.';
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner, repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find(c => c.body.includes('### Crossplane Validation'));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                comment_id: existing.id, body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: context.issue.number, body,
+              });
+            }
