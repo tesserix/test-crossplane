@@ -7,9 +7,9 @@ spec:
     region: ap-southeast-2
     engine: postgres
     engineVersion: "16.4"
-    instanceClass: db.r6g.large
-    allocatedStorage: 100
-    maxAllocatedStorage: 500
+    instanceClass: db.r6g.xlarge
+    allocatedStorage: 200
+    maxAllocatedStorage: 1000
     dbName: appdb
     masterUsername: appadmin
     storageEncrypted: true
